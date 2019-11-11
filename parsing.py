@@ -83,10 +83,12 @@ def get_variants_from_sites_vcf(vcf, chrom, start_bp, end_bp, histograms = True)
                     variant['xpos'] = Xpos.from_chrom_pos(variant['chrom'], variant['pos'])
                     variant['xstop'] = variant['xpos'] + len(variant['alt']) - len(variant['ref'])
                     variant['variant_id'] = '{}-{}-{}-{}'.format(variant['chrom'], variant['pos'], variant['ref'], variant['alt'])
-                    allele_annotations = annotations[i + 1]
+                    allele_annotations = annotations.get(i + 1, None)
                     if allele_annotations:
                         variant['rsids'] = [rsid for rsid in allele_annotations[0]['Existing_variation'].split('&') if rsid.startswith('rs')]
                     else:
+                        allele_annotations = [dict(zip(vep_field_names, [''] * len(vep_field_names)))]
+                        allele_annotations[0]['Consequence'] = 'unknown'
                         variant['rsids'] = []
                     variant['site_quality'] = record.qual
                     variant['filter'] = ';'.join(record.filter.keys())
