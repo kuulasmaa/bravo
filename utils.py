@@ -48,6 +48,7 @@ class Consequence(object):
         "splice_acceptor_variant",
         "splice_donor_variant",
         "transcript_amplification",
+        "unknown",
     ]
     _missense_csqs = [
         "inframe_insertion",
@@ -58,6 +59,7 @@ class Consequence(object):
     _synonymous_csqs = [
         "splice_region_variant",
         "incomplete_terminal_codon_variant",
+        "start_retained_variant",
         "stop_retained_variant",
         "synonymous_variant",
     ]
