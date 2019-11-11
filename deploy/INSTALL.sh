@@ -14,9 +14,9 @@ setup_tabix_tools() {
     echo -e "${GREEN}=> Setup bgzip and tabix${NOCOLOR}"
     start_dir=${PWD}
     { cd ${deploy_dir} \
-        && wget https://github.com/samtools/htslib/releases/download/1.7/htslib-1.7.tar.bz2 \
-        && tar -xjvf htslib-1.7.tar.bz2 \
-        && cd htslib-1.7 \
+        && wget https://github.com/samtools/htslib/releases/download/1.9/htslib-1.9.tar.bz2 \
+        && tar -xjvf htslib-1.9.tar.bz2 \
+        && cd htslib-1.9 \
         && ./configure --prefix=${PWD} \
         && make \
         && make install; } >> ${log_file} 2>&1
@@ -26,6 +26,24 @@ setup_tabix_tools() {
     fi
     tabix=${PWD}/bin/tabix
     bgzip=${PWD}/bin/bgzip
+    cd ${start_dir}
+}
+
+setup_bcftools() {
+    echo -e "${GREEN}=> Setup bcftools${NOCOLOR}"
+    start_dir=${PWD}
+    { cd ${deploy_dir} \
+        && wget https://github.com/samtools/bcftools/releases/download/1.9/bcftools-1.9.tar.bz2 \
+        && tar -xjvf bcftools-1.9.tar.bz2 \
+        && cd bcftools-1.9 \
+        && ./configure --prefix=${PWD} \
+        && make \
+        && make install; } >> ${log_file} 2>&1
+    if [ ! $? == 0 ]; then
+        echo "Error occured! See ${log_file} for more details."
+        exit 1
+    fi
+    bcftools=${PWD}/bin/bcftools
     cd ${start_dir}
 }
 
@@ -188,9 +206,10 @@ echo "Writing log information to ${log_file}."
 echo -n "" > ${log_file}
 
 echo -e "${RED}DOWNLOADING REQUIRED TOOLS/LIBRARIES${NOCOLOR}"
-command -v tabix > /dev/null && command -v bgzip > /dev/null
+command -v tabix > /dev/null && command -v bgzip > /dev/null && command -v bcftools > /dev/null
 if [ ! $? == 0 ]; then
     setup_tabix_tools
+    setup_bcftools
 else
     tabix=`command -v tabix`
     bgzip=`command -v bgzip`
@@ -209,6 +228,6 @@ echo -e "${RED}LOADING EXTERNAL DATA TO DATABASE${NOCOLOR}"
 python ../manage.py genes -t ${canonical_transcripts_file} -m ${omim_file} -f ${hgnc_file} -g ${gencode_file}
 python ../manage.py dbsnp -d ${dbsnp_file} -t ${threads}
 
-rm -rf ${deploy_dir}
+#rm -rf ${deploy_dir}
 
 echo -e "${RED}DONE${NOCOLOR}"
