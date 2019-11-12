@@ -47,6 +47,23 @@ setup_bcftools() {
     cd ${start_dir}
 }
 
+setup_samtools() {
+    echo -e "${GREEN}=> Setup samtools${NOCOLOR}"
+    start_dir=${PWD}
+    { cd ${deploy_dir} \
+        && wget https://github.com/samtools/samtools/releases/download/1.9/samtools-1.9.tar.bz2 \
+        && tar -xjvf samtools-1.9.tar.bz2 \
+        && cd samtools-1.9 \
+        && ./configure --prefix=${PWD} \
+        && make \
+        && make install; } >> ${log_file} 2>&1
+    if [ ! $? == 0 ]; then
+        echo "Error occured! See ${log_file} for more details."
+        exit 1
+    fi
+    samtools=${PWD}/bin/samtools
+    cd ${start_dir}
+}
 setup_ensembl_api() {
     echo -e "${GREEN}=> Setup BioPerl and Ensembl API${NOCOLOR}"
     start_dir=${PWD}
@@ -83,6 +100,10 @@ download_GENCODE() {
         echo "Error occured! See ${log_file} for more details."
         exit 1
     fi
+
+    zgrep "^chr" gencode.gtf.gz | bgzip > gencode_chr-only.gtf.gz
+    mv gencode_chr-only.gtf.gz gencode.gtf.gz
+
     gencode_file=${PWD}/gencode.gtf.gz
     cd ${start_dir}
 }
@@ -135,6 +156,25 @@ download_dbSNP() {
         exit 1
     fi
     dbsnp_file=${PWD}/dbsnp.tsv.gz
+    cd ${start_dir}
+}
+
+download_ensembl_genome() {
+    start_dir=${PWD}
+    if [ "$genome_build" == "hg38" ]; then
+        echo -e "${GREEN}=> Downloading Ensembl fasta 98 for human genome version ${genome_build}${NOCOLOR}"
+        url=ftp://ftp://ftp.ensembl.org/pub/release-98/fasta/homo_sapiens/dna/Homo_sapiens.GRCh37.dna.toplevel.fa.gz
+    elif [ "$genome_build" == "hg19" ]; then
+        echo -e "${GREEN}=> Downloading Ensembl fasta 98 for human genome version ${genome_build}${NOCOLOR}"
+        url=ftp://ftp://ftp.ensembl.org/pub/grch37/release-98/fasta/homo_sapiens/dna/Homo_sapiens.GRCh37.dna.toplevel.fa.gz
+    fi
+    { cd ${deploy_dir} \
+        && wget -O genome.fa.gz ${url}; } >> ${log_file} 2>&1
+    if [ ! $? == 0 ]; then
+        echo "Error occured! See ${log_file} for more details."
+        exit 1
+    fi
+    genome_file=${PWD}/genome.fa.gz
     cd ${start_dir}
 }
 
@@ -206,14 +246,15 @@ echo "Writing log information to ${log_file}."
 echo -n "" > ${log_file}
 
 echo -e "${RED}DOWNLOADING REQUIRED TOOLS/LIBRARIES${NOCOLOR}"
-command -v tabix > /dev/null && command -v bgzip > /dev/null && command -v bcftools > /dev/null
-if [ ! $? == 0 ]; then
-    setup_tabix_tools
-    setup_bcftools
-else
-    tabix=`command -v tabix`
-    bgzip=`command -v bgzip`
-fi
+setup_tabix_tools
+setup_bcftools
+setup_samtools
+
+tabix=`command -v tabix`
+bgzip=`command -v bgzip`
+samtools=`command -v samtools`
+bcftools=`command -v bcftools`
+    
 setup_ensembl_api
 
 echo -e "${RED}DOWNLOADING EXTERNAL DATA${NOCOLOR}"
@@ -222,11 +263,16 @@ download_genenames
 download_OMIM
 download_dbSNP
 download_canonical_transcripts
+download_ensembl_genome
 
 echo -e "${RED}LOADING EXTERNAL DATA TO DATABASE${NOCOLOR}"
 
 python ../manage.py genes -t ${canonical_transcripts_file} -m ${omim_file} -f ${hgnc_file} -g ${gencode_file}
 python ../manage.py dbsnp -d ${dbsnp_file} -t ${threads}
+
+gunzip ${gencode_file}
+samtools faidx $(basename ${gencode_file} .gz)
+cp $(basename ${gencode_file} .gz) $(basename ${gencode_file} .gz).fai /data/genomes/
 
 #rm -rf ${deploy_dir}
 
