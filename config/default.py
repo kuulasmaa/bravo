@@ -5,13 +5,13 @@ PROXY = False                       # True if app is proxied by Apache or simila
 # Application Settings
 BROWSER_NAME = 'Bravo'
 DATASET_NAME = 'Example Dataset'    # Change to your dataset name
-SHOW_POWERED_BY = True
+SHOW_POWERED_BY = False
 NUM_SAMPLES = 0                     # Change to the number of samples you are using
 NUM_VARIANTS = 'XYZ million'        # Change to the number of variants you are using
 
 # Database Settings
 MONGO = {
-    'host': 'mongo',
+    'host': '127.0.0.1',
     'port': 27017,
     'name': 'bravo'
 }
@@ -47,7 +47,7 @@ BRAVO_ACCESS_SECRET = ''
 BRAVO_AUTH_URL_PREFIX = '/api/' + API_VERSION + '/auth'
 
 # Data Directory Settings. By default all data is stored in /data root directory
-IGV_REFERENCE_PATH = '/data/genomes/<your-reference-file>'
+IGV_REFERENCE_PATH = '/data/genomes/genome.fa'
 IGV_CRAM_DIRECTORY = '/data/cram/'
 IGV_CACHE_COLLECTION = 'igv_cache'
 IGV_CACHE_DIRECTORY = '/data/cache/igv_cache/'
@@ -55,7 +55,7 @@ IGV_CACHE_LIMIT = 1000
 BASE_COVERAGE_DIRECTORY = '/data/coverage/'
 
 # FASTA Data URL Settings.
-FASTA_URL = 'https://<your-bravo-domain>/genomes/hs38DH.fa' # Edit to reflect your URL for your BRAVO application
+FASTA_URL = 'https://<your-bravo-domain>/genomes/genome.fa' # Edit to reflect your URL for your BRAVO application
 
 ADMINS = [
     'email@email.email'
