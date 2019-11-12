@@ -101,7 +101,7 @@ download_GENCODE() {
         exit 1
     fi
 
-    zgrep "^chr" gencode.gtf.gz | bgzip > gencode_chr-only.gtf.gz
+    zgrep "^chr" gencode.gtf.gz | ${bgzip} > gencode_chr-only.gtf.gz
     mv gencode_chr-only.gtf.gz gencode.gtf.gz
 
     gencode_file=${PWD}/gencode.gtf.gz
@@ -163,10 +163,10 @@ download_ensembl_genome() {
     start_dir=${PWD}
     if [ "$genome_build" == "hg38" ]; then
         echo -e "${GREEN}=> Downloading Ensembl fasta 98 for human genome version ${genome_build}${NOCOLOR}"
-        url=ftp://ftp://ftp.ensembl.org/pub/release-98/fasta/homo_sapiens/dna/Homo_sapiens.GRCh37.dna.toplevel.fa.gz
+        url=ftp://ftp.ensembl.org/pub/release-98/fasta/homo_sapiens/dna/Homo_sapiens.GRCh37.dna.toplevel.fa.gz
     elif [ "$genome_build" == "hg19" ]; then
         echo -e "${GREEN}=> Downloading Ensembl fasta 98 for human genome version ${genome_build}${NOCOLOR}"
-        url=ftp://ftp://ftp.ensembl.org/pub/grch37/release-98/fasta/homo_sapiens/dna/Homo_sapiens.GRCh37.dna.toplevel.fa.gz
+        url=ftp://ftp.ensembl.org/pub/grch37/release-98/fasta/homo_sapiens/dna/Homo_sapiens.GRCh37.dna.toplevel.fa.gz
     fi
     { cd ${deploy_dir} \
         && wget -O genome.fa.gz ${url}; } >> ${log_file} 2>&1
@@ -249,11 +249,6 @@ echo -e "${RED}DOWNLOADING REQUIRED TOOLS/LIBRARIES${NOCOLOR}"
 setup_tabix_tools
 setup_bcftools
 setup_samtools
-
-tabix=`command -v tabix`
-bgzip=`command -v bgzip`
-samtools=`command -v samtools`
-bcftools=`command -v bcftools`
     
 setup_ensembl_api
 
@@ -271,7 +266,7 @@ python ../manage.py genes -t ${canonical_transcripts_file} -m ${omim_file} -f ${
 python ../manage.py dbsnp -d ${dbsnp_file} -t ${threads}
 
 gunzip ${gencode_file}
-samtools faidx $(basename ${gencode_file} .gz)
+${samtools} faidx $(basename ${gencode_file} .gz)
 cp $(basename ${gencode_file} .gz) $(basename ${gencode_file} .gz).fai /data/genomes/
 
 #rm -rf ${deploy_dir}
