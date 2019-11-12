@@ -4,10 +4,12 @@ user=ubuntu
 base_dir=$PWD
 
 # prepare system (Ubuntu 18.04)
-apt-get install build-essential zlib1g-dev libbz2-dev liblzma-dev  autoconf automake bzip2 curl g++ gcc libcurl4-gnutls-dev libssl-dev make perl wget cmake
-apt-get install git screen mongodb nginx apache2-utils
+apt update
+apt upgrade
+apt install build-essential libncurses5-dev zlib1g-dev libbz2-dev liblzma-dev autoconf automake bzip2 curl libcurl4-gnutls-dev libssl-dev cmake perl wget 
+apt install git python-pip screen mongodb nginx apache2-utils
 
-pip2.7 install -r requirements.txt
+pip install -r requirements.txt
 
 # create data directories
 mkdir -p /data/cache/igv_cache
@@ -16,13 +18,14 @@ mkdir -p /data/genomes
 mkdir -p /data/coverage
 mkdir -p /data/import_vcf
 
-cd ${base_dir}
-deploy/INSTALL.sh -b hg19 -t 2
+cd ${base_dir}/deploy
+./INSTALL.sh -b hg19 -t 4
 
 # compile data prep tools
 cd ${base_dir}/data/DataPrep
 cget install .
 
+cd ${base_dir}
 chown -R ${user}.${user} /data ${base_dir}
 
 #############################################
