@@ -5,7 +5,7 @@ RED="\033[0;31m"
 GREEN="\033[32m"
 NOCOLOR="\033[0m"
 
-genome_build=hg38
+genome_build=hg19
 deploy_dir=${PWD}/temp
 log_file=${PWD}/INSTALL.log
 threads=1
@@ -169,12 +169,12 @@ download_ensembl_genome() {
         url=ftp://ftp.ensembl.org/pub/grch37/release-98/fasta/homo_sapiens/dna/Homo_sapiens.GRCh37.dna.toplevel.fa.gz
     fi
     { cd ${deploy_dir} \
-        && wget -O genome.fa.gz ${url}; } >> ${log_file} 2>&1
+        && wget -O ${genome_build}.fa.gz ${url}; } >> ${log_file} 2>&1
     if [ ! $? == 0 ]; then
         echo "Error occured! See ${log_file} for more details."
         exit 1
     fi
-    genome_file=${PWD}/genome.fa.gz
+    genome_file=${PWD}/${genome_build}.fa.gz
     cd ${start_dir}
 }
 
@@ -265,9 +265,9 @@ echo -e "${RED}LOADING EXTERNAL DATA TO DATABASE${NOCOLOR}"
 python ../manage.py genes -t ${canonical_transcripts_file} -m ${omim_file} -f ${hgnc_file} -g ${gencode_file}
 python ../manage.py dbsnp -d ${dbsnp_file} -t ${threads}
 
-gunzip ${gencode_file}
-${samtools} faidx $(basename ${gencode_file} .gz)
-cp $(basename ${gencode_file} .gz) $(basename ${gencode_file} .gz).fai /data/genomes/
+gunzip ${genome_file}
+${samtools} faidx $(basename ${genome_file} .gz)
+cp $(basename ${genome_file} .gz) $(basename ${genome_file} .gz).fai /data/genomes/
 
 #rm -rf ${deploy_dir}
 
